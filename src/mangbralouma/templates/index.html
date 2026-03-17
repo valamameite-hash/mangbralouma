@@ -43,7 +43,7 @@
       font-size: 14px;
       font-weight: 600;
     }
-    input {
+    input, select {
       width: 100%;
       padding: 9px;
       border: 1px solid #cbd5e1;
@@ -113,6 +113,7 @@
         <p>Cotisations: {{ data.cotisations|length }}</p>
         <p>Total: {{ '%.2f'|format(total_cotisations) }}</p>
         <p>Evenements: {{ data.events|length }}</p>
+        <p>Total cotise evenements: {{ '%.2f'|format(total_event_cotisations) }}</p>
       </div>
 
       <div class="card">
@@ -158,6 +159,16 @@
           </label>
           <label>Date
             <input type="date" name="date" value="{{ today }}" required>
+          </label>
+          <label>Raison
+            <select name="reason" required>
+              {% for reason in event_reasons %}
+              <option value="{{ reason }}">{{ reason|capitalize }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>Montant cotise
+            <input type="number" step="0.01" min="0" name="amount" required>
           </label>
           <label>Description
             <input name="description">
@@ -208,9 +219,20 @@
 
     <div class="card" style="margin-top: 16px;">
       <h2>Evenements</h2>
+      <form method="get" action="/" style="display: flex; gap: 8px; align-items: end; margin-bottom: 10px;">
+        <label style="margin: 0; flex: 1;">Filtrer par raison
+          <select name="reason">
+            <option value="">Toutes</option>
+            {% for reason in event_reasons %}
+            <option value="{{ reason }}" {% if selected_reason == reason %}selected{% endif %}>{{ reason|capitalize }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <button type="submit" style="margin-top: 0;">Filtrer</button>
+      </form>
       <table>
         <thead>
-          <tr><th>ID</th><th>Titre</th><th>Date</th><th>Description</th></tr>
+          <tr><th>ID</th><th>Titre</th><th>Date</th><th>Raison</th><th>Montant</th><th>Description</th></tr>
         </thead>
         <tbody>
           {% for e in data.events %}
@@ -218,6 +240,8 @@
             <td>{{ e.id }}</td>
             <td>{{ e.title }}</td>
             <td>{{ e.date }}</td>
+            <td>{{ e.reason or 'autres' }}</td>
+            <td>{{ '%.2f'|format(e.amount or 0) }}</td>
             <td>{{ e.description or '-' }}</td>
           </tr>
           {% endfor %}

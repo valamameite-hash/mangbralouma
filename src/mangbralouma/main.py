@@ -16,6 +16,14 @@ DEFAULT_DATA = {
     "events": [],
 }
 
+EVENT_REASONS = (
+    "funerailles",
+    "mariage",
+    "baptemes",
+    "sacrifices",
+    "autres",
+)
+
 
 def load_data(data_path: Path) -> dict:
     if not data_path.exists():
@@ -145,8 +153,15 @@ def cmd_event_add(
     data_path: Path,
     title: str,
     event_date: str,
+    reason: str,
+    amount: float,
     description: str | None,
 ) -> tuple[int, str]:
+    if amount < 0:
+        return 1, "Le montant cotise ne peut pas etre negatif."
+    if reason not in EVENT_REASONS:
+        return 1, "Raison invalide pour la cotisation de l'evenement."
+
     data = load_data(data_path)
     event_id = data["next_event_id"]
     data["events"].append(
@@ -154,22 +169,37 @@ def cmd_event_add(
             "id": event_id,
             "title": title.strip(),
             "date": event_date,
+            "reason": reason,
+            "amount": float(amount),
             "description": description.strip() if description else None,
         }
     )
     data["next_event_id"] = event_id + 1
     save_data(data_path, data)
-    return 0, f"Evenement ajoute: #{event_id} {title.strip()} ({event_date})"
+    return (
+        0,
+        "Evenement ajoute: "
+        f"#{event_id} {title.strip()} ({event_date}) "
+        f"raison={reason} montant={amount:.2f}",
+    )
 
 
-def cmd_event_list(data_path: Path) -> tuple[int, str]:
+def cmd_event_list(
+    data_path: Path,
+    reason: str | None = None,
+) -> tuple[int, str]:
     data = load_data(data_path)
     events = data["events"]
+    if reason:
+        events = [event for event in events if event.get("reason") == reason]
     if not events:
         return 0, "Aucun evenement enregistre."
     lines = ["Evenements:"]
     for event in events:
+        reason = event.get("reason", "autres")
+        amount = float(event.get("amount", 0.0))
         text = f"- #{event['id']} {event['date']} {event['title']}"
+        text += f" | raison: {reason} | montant: {amount:.2f}"
         if event.get("description"):
             text += f" - {event['description']}"
         lines.append(text)
@@ -179,12 +209,16 @@ def cmd_event_list(data_path: Path) -> tuple[int, str]:
 def cmd_summary(data_path: Path) -> tuple[int, str]:
     data = load_data(data_path)
     total = sum(entry["amount"] for entry in data["cotisations"])
+    total_events = sum(
+        float(event.get("amount", 0.0)) for event in data["events"]
+    )
     lines = [
         "Resume:",
         f"- Membres: {len(data['members'])}",
         f"- Cotisations: {len(data['cotisations'])}",
         f"- Total cotisations: {total:.2f}",
         f"- Evenements: {len(data['events'])}",
+        f"- Total cotise sur evenements: {total_events:.2f}",
     ]
     return 0, "\n".join(lines)
 
@@ -288,8 +322,25 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         required=True,
         type=parse_iso_date,
     )
+    event_add.add_argument(
+        "--reason",
+        choices=EVENT_REASONS,
+        default="autres",
+        help="Raison: funerailles, mariage, baptemes, sacrifices, autres.",
+    )
+    event_add.add_argument(
+        "--amount",
+        type=float,
+        required=True,
+        help="Montant cotise pour l'evenement.",
+    )
     event_add.add_argument("--description", help="Description optionnelle.")
-    event_sub.add_parser("list", help="Lister les evenements.")
+    event_list = event_sub.add_parser("list", help="Lister les evenements.")
+    event_list.add_argument(
+        "--reason",
+        choices=EVENT_REASONS,
+        help="Filtrer la liste par raison.",
+    )
 
     subparsers.add_parser("summary", help="Afficher un resume global.")
 
@@ -329,10 +380,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             data_path,
             title=args.title,
             event_date=args.event_date,
+            reason=args.reason,
+            amount=args.amount,
             description=args.description,
         )
     elif args.command == "event" and args.event_command == "list":
-        code, message = cmd_event_list(data_path)
+        code, message = cmd_event_list(data_path, reason=args.reason)
     elif args.command == "summary":
         code, message = cmd_summary(data_path)
     else:

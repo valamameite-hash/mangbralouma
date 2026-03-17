@@ -23,7 +23,7 @@ La CLI propose des commandes metier:
 - `init`: initialise la base locale
 - `member add|list`: ajoute et affiche les membres
 - `cotisation add|list`: ajoute et affiche les cotisations
-- `event add|list`: ajoute et affiche les evenements
+- `event add|list`: ajoute et affiche les evenements avec raison et montant
 - `summary`: affiche les indicateurs principaux
 
 L'application web propose des formulaires pour les memes operations.
@@ -82,8 +82,16 @@ mangbralouma cotisation add --member-id 1 --amount 5000 --date 2026-03-17 --note
 Ajouter un evenement :
 
 ```bash
-mangbralouma event add --title "Reunion generale" --date 2026-04-05 --description "Maison familiale"
+mangbralouma event add --title "Reunion generale" --date 2026-04-05 --reason mariage --amount 15000 --description "Maison familiale"
 ```
+
+Raisons disponibles pour un evenement:
+
+- `funerailles`
+- `mariage`
+- `baptemes`
+- `sacrifices`
+- `autres`
 
 Afficher le resume :
 

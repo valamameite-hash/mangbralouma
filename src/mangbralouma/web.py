@@ -7,6 +7,7 @@ from pathlib import Path
 from flask import Flask, redirect, render_template, request, url_for
 
 from .main import (
+    EVENT_REASONS,
     cmd_cotisation_add,
     cmd_event_add,
     cmd_member_add,
@@ -22,12 +23,29 @@ def create_app(data_path: Path | None = None) -> Flask:
     def index():
         storage = Path(app.config["DATA_PATH"])
         data = load_data(storage)
+        selected_reason = (request.args.get("reason") or "").strip().lower()
+        filtered_events = data["events"]
+        if selected_reason:
+            filtered_events = [
+                event
+                for event in data["events"]
+                if event.get("reason") == selected_reason
+            ]
+
+        view_data = dict(data)
+        view_data["events"] = filtered_events
         total_cotisations = sum(item["amount"] for item in data["cotisations"])
+        total_event_cotisations = sum(
+            float(item.get("amount", 0.0)) for item in filtered_events
+        )
         return render_template(
             "index.html",
-            data=data,
+            data=view_data,
             total_cotisations=total_cotisations,
+            total_event_cotisations=total_event_cotisations,
             today=date.today().isoformat(),
+            event_reasons=EVENT_REASONS,
+            selected_reason=selected_reason,
             message=request.args.get("message"),
             error=request.args.get("error"),
         )
@@ -86,7 +104,19 @@ def create_app(data_path: Path | None = None) -> Flask:
         storage = Path(app.config["DATA_PATH"])
         title = (request.form.get("title") or "").strip()
         event_date = (request.form.get("date") or "").strip()
+        reason = (request.form.get("reason") or "autres").strip().lower()
+        amount_raw = (request.form.get("amount") or "").strip()
         description = (request.form.get("description") or "").strip() or None
+
+        try:
+            amount = float(amount_raw)
+        except ValueError:
+            return redirect(
+                url_for(
+                    "index",
+                    error="Le montant de l'evenement est invalide.",
+                )
+            )
 
         if not title or not event_date:
             return redirect(
@@ -100,6 +130,8 @@ def create_app(data_path: Path | None = None) -> Flask:
             storage,
             title=title,
             event_date=event_date,
+            reason=reason,
+            amount=amount,
             description=description,
         )
         key = "message" if code == 0 else "error"
