@@ -1,16 +1,97 @@
-from mangbralouma.main import build_message, main
+from pathlib import Path
+
+from mangbralouma.main import main
 
 
-def test_build_message_default() -> None:
-    assert build_message() == "Projet mangbralouma initialise."
+def test_init_and_member_listing(capsys, tmp_path: Path) -> None:
+    data_file = tmp_path / "family.json"
+
+    assert main(["--data", str(data_file), "init"]) == 0
+    assert (
+        main([
+            "--data",
+            str(data_file),
+            "member",
+            "add",
+            "--name",
+            "Aicha",
+        ])
+        == 0
+    )
+    assert main(["--data", str(data_file), "member", "list"]) == 0
+
+    output = capsys.readouterr().out
+    assert "Membre ajoute" in output
+    assert "Aicha" in output
 
 
-def test_build_message_with_name() -> None:
-    assert build_message(name="demo") == "Projet demo initialise."
+def test_cotisation_requires_existing_member(capsys, tmp_path: Path) -> None:
+    data_file = tmp_path / "family.json"
+
+    assert main(["--data", str(data_file), "init"]) == 0
+    exit_code = main(
+        [
+            "--data",
+            str(data_file),
+            "cotisation",
+            "add",
+            "--member-id",
+            "999",
+            "--amount",
+            "1200",
+        ]
+    )
+
+    output = capsys.readouterr().out
+    assert exit_code == 1
+    assert "Membre introuvable" in output
 
 
-def test_main_with_cli_args(capsys) -> None:
-    exit_code = main(["--name", "demo", "--upper"])
-    captured = capsys.readouterr()
-    assert exit_code == 0
-    assert "PROJET DEMO INITIALISE." in captured.out
+def test_summary_with_cotisation_and_event(capsys, tmp_path: Path) -> None:
+    data_file = tmp_path / "family.json"
+
+    assert main(["--data", str(data_file), "init"]) == 0
+    assert (
+        main([
+            "--data",
+            str(data_file),
+            "member",
+            "add",
+            "--name",
+            "Mariam",
+        ])
+        == 0
+    )
+    assert main(
+        [
+            "--data",
+            str(data_file),
+            "cotisation",
+            "add",
+            "--member-id",
+            "1",
+            "--amount",
+            "2500",
+            "--date",
+            "2026-03-17",
+        ]
+    ) == 0
+    assert main(
+        [
+            "--data",
+            str(data_file),
+            "event",
+            "add",
+            "--title",
+            "Reunion familiale",
+            "--date",
+            "2026-04-05",
+        ]
+    ) == 0
+    assert main(["--data", str(data_file), "summary"]) == 0
+
+    output = capsys.readouterr().out
+    assert "Membres: 1" in output
+    assert "Cotisations: 1" in output
+    assert "Total cotisations: 2500.00" in output
+    assert "Evenements: 1" in output
