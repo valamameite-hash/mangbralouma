@@ -70,7 +70,7 @@ mangbralouma init
 Ajouter un membre :
 
 ```bash
-mangbralouma member add --name "Aicha" --phone "+22300000000" --email "aicha@example.com"
+mangbralouma member add --first-name "Aicha" --last-name "Traore" --nickname "Aichou" --country "Mali" --city "Bamako" --occupation "Commercante" --phone "+22300000000" --email "aicha@example.com"
 ```
 
 Ajouter une cotisation :

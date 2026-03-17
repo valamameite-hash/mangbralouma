@@ -21,7 +21,15 @@ def test_add_member_from_web(tmp_path: Path) -> None:
     with app.test_client() as client:
         response = client.post(
             "/members/add",
-            data={"name": "Aicha", "phone": "+22300000000"},
+            data={
+                "first_name": "Aicha",
+                "last_name": "Traore",
+                "nickname": "Aichou",
+                "country": "Mali",
+                "city": "Bamako",
+                "occupation": "Commercante",
+                "phone": "+22300000000",
+            },
             follow_redirects=True,
         )
 
@@ -29,6 +37,9 @@ def test_add_member_from_web(tmp_path: Path) -> None:
     assert response.status_code == 200
     assert "Membre ajoute" in text
     assert "Aicha" in text
+    assert "Traore" in text
+    assert "Bamako" in text
+    assert "Commercante" in text
 
 
 def test_add_event_with_reason_and_amount(tmp_path: Path) -> None:

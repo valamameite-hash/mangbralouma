@@ -50,23 +50,37 @@ def cmd_init(data_path: Path, force: bool) -> tuple[int, str]:
 
 def cmd_member_add(
     data_path: Path,
-    name: str,
+    first_name: str,
+    last_name: str,
+    nickname: str | None,
+    country: str | None,
+    city: str | None,
+    occupation: str | None,
     phone: str | None,
     email: str | None,
 ) -> tuple[int, str]:
     data = load_data(data_path)
     member_id = data["next_member_id"]
+    first_name_clean = first_name.strip()
+    last_name_clean = last_name.strip()
+    full_name = f"{first_name_clean} {last_name_clean}".strip()
     data["members"].append(
         {
             "id": member_id,
-            "name": name.strip(),
+            "first_name": first_name_clean,
+            "last_name": last_name_clean,
+            "nickname": nickname.strip() if nickname else None,
+            "country": country.strip() if country else None,
+            "city": city.strip() if city else None,
+            "occupation": occupation.strip() if occupation else None,
+            "name": full_name,
             "phone": phone.strip() if phone else None,
             "email": email.strip() if email else None,
         }
     )
     data["next_member_id"] = member_id + 1
     save_data(data_path, data)
-    return 0, f"Membre ajoute: #{member_id} {name.strip()}"
+    return 0, f"Membre ajoute: #{member_id} {full_name}"
 
 
 def cmd_member_list(data_path: Path) -> tuple[int, str]:
@@ -76,12 +90,25 @@ def cmd_member_list(data_path: Path) -> tuple[int, str]:
         return 0, "Aucun membre enregistre."
     lines = ["Membres:"]
     for member in members:
+        first_name = member.get("first_name", "").strip()
+        last_name = member.get("last_name", "").strip()
+        display_name = (f"{first_name} {last_name}").strip()
+        if not display_name:
+            display_name = member.get("name", "Sans nom")
+
         lines.append(
-            f"- #{member['id']} {member['name']} "
+            f"- #{member['id']} {display_name} "
             "(tel: "
             f"{member.get('phone') or '-'}, "
             "email: "
             f"{member.get('email') or '-'})"
+        )
+        lines.append(
+            "  "
+            f"sobriquet: {member.get('nickname') or '-'}, "
+            f"residence: {member.get('city') or '-'}, "
+            f"{member.get('country') or '-'}, "
+            f"activite: {member.get('occupation') or '-'}"
         )
     return 0, "\n".join(lines)
 
@@ -268,7 +295,29 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         required=True,
     )
     member_add = member_sub.add_parser("add", help="Ajouter un membre.")
-    member_add.add_argument("--name", required=True, help="Nom du membre.")
+    member_add.add_argument(
+        "--first-name",
+        required=True,
+        help="Prenom du membre.",
+    )
+    member_add.add_argument(
+        "--last-name",
+        required=True,
+        help="Nom de famille du membre.",
+    )
+    member_add.add_argument("--nickname", help="Sobriquet du membre.")
+    member_add.add_argument(
+        "--country",
+        help="Pays de residence du membre.",
+    )
+    member_add.add_argument(
+        "--city",
+        help="Ville de residence du membre.",
+    )
+    member_add.add_argument(
+        "--occupation",
+        help="Activite professionnelle du membre.",
+    )
     member_add.add_argument("--phone", help="Telephone du membre.")
     member_add.add_argument("--email", help="Email du membre.")
     member_sub.add_parser("list", help="Lister les membres.")
@@ -356,7 +405,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     elif args.command == "member" and args.member_command == "add":
         code, message = cmd_member_add(
             data_path,
-            name=args.name,
+            first_name=args.first_name,
+            last_name=args.last_name,
+            nickname=args.nickname,
+            country=args.country,
+            city=args.city,
+            occupation=args.occupation,
             phone=args.phone,
             email=args.email,
         )

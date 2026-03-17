@@ -119,8 +119,23 @@
       <div class="card">
         <h2>Ajouter un membre</h2>
         <form method="post" action="/members/add">
+          <label>Prenom
+            <input name="first_name" required>
+          </label>
           <label>Nom
-            <input name="name" required>
+            <input name="last_name" required>
+          </label>
+          <label>Sobriquet
+            <input name="nickname">
+          </label>
+          <label>Pays de residence
+            <input name="country">
+          </label>
+          <label>Ville de residence
+            <input name="city">
+          </label>
+          <label>Activite professionnelle
+            <input name="occupation">
           </label>
           <label>Telephone
             <input name="phone">
@@ -182,13 +197,18 @@
       <h2>Membres</h2>
       <table>
         <thead>
-          <tr><th>ID</th><th>Nom</th><th>Telephone</th><th>Email</th></tr>
+          <tr><th>ID</th><th>Prenom</th><th>Nom</th><th>Sobriquet</th><th>Pays</th><th>Ville</th><th>Activite</th><th>Telephone</th><th>Email</th></tr>
         </thead>
         <tbody>
           {% for m in data.members %}
           <tr>
             <td>{{ m.id }}</td>
-            <td>{{ m.name }}</td>
+            <td>{{ m.first_name or '-' }}</td>
+            <td>{{ m.last_name or '-' }}</td>
+            <td>{{ m.nickname or '-' }}</td>
+            <td>{{ m.country or '-' }}</td>
+            <td>{{ m.city or '-' }}</td>
+            <td>{{ m.occupation or '-' }}</td>
             <td>{{ m.phone or '-' }}</td>
             <td>{{ m.email or '-' }}</td>
           </tr>

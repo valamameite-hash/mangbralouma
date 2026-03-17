@@ -13,8 +13,18 @@ def test_init_and_member_listing(capsys, tmp_path: Path) -> None:
             str(data_file),
             "member",
             "add",
-            "--name",
+            "--first-name",
             "Aicha",
+            "--last-name",
+            "Traore",
+            "--nickname",
+            "Aichou",
+            "--country",
+            "Mali",
+            "--city",
+            "Bamako",
+            "--occupation",
+            "Commercante",
         ])
         == 0
     )
@@ -23,6 +33,8 @@ def test_init_and_member_listing(capsys, tmp_path: Path) -> None:
     output = capsys.readouterr().out
     assert "Membre ajoute" in output
     assert "Aicha" in output
+    assert "Bamako" in output
+    assert "Commercante" in output
 
 
 def test_cotisation_requires_existing_member(capsys, tmp_path: Path) -> None:
@@ -57,8 +69,10 @@ def test_summary_with_cotisation_and_event(capsys, tmp_path: Path) -> None:
             str(data_file),
             "member",
             "add",
-            "--name",
+            "--first-name",
             "Mariam",
+            "--last-name",
+            "Keita",
         ])
         == 0
     )

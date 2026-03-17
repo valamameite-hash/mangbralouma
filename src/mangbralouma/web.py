@@ -53,17 +53,30 @@ def create_app(data_path: Path | None = None) -> Flask:
     @app.post("/members/add")
     def add_member():
         storage = Path(app.config["DATA_PATH"])
-        name = (request.form.get("name") or "").strip()
+        first_name = (request.form.get("first_name") or "").strip()
+        last_name = (request.form.get("last_name") or "").strip()
+        nickname = (request.form.get("nickname") or "").strip() or None
+        country = (request.form.get("country") or "").strip() or None
+        city = (request.form.get("city") or "").strip() or None
+        occupation = (request.form.get("occupation") or "").strip() or None
         phone = (request.form.get("phone") or "").strip() or None
         email = (request.form.get("email") or "").strip() or None
-        if not name:
+        if not first_name or not last_name:
             return redirect(
-                url_for("index", error="Le nom du membre est requis.")
+                url_for(
+                    "index",
+                    error="Le prenom et le nom du membre sont requis.",
+                )
             )
 
         code, msg = cmd_member_add(
             storage,
-            name=name,
+            first_name=first_name,
+            last_name=last_name,
+            nickname=nickname,
+            country=country,
+            city=city,
+            occupation=occupation,
             phone=phone,
             email=email,
         )
