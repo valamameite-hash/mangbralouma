@@ -1,3 +1,5 @@
 """Package mangbralouma."""
 
-__all__ = ["main"]
+from .main import build_message, main
+
+__all__ = ["build_message", "main"]

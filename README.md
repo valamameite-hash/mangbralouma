@@ -5,12 +5,12 @@ Base de projet Python initialisee et connectee a GitHub.
 ## Description
 
 Ce depot contient un squelette de projet Python simple, pret a etre etendu.
-Il fournit une structure claire avec un package applicatif dans `src/`, un dossier `tests/` et la configuration minimale du projet dans `pyproject.toml`.
+Il fournit une structure claire avec un package applicatif dans `src/`, un dossier `tests/`, une petite interface en ligne de commande et la configuration minimale du projet dans `pyproject.toml`.
 
 ## Fonctionnement actuel
 
-Le projet expose pour l'instant un point d'entree minimal qui affiche un message de confirmation.
-Cela permet de verifier que la structure Python est correcte avant d'ajouter les vraies fonctionnalites.
+Le projet expose maintenant une CLI minimale qui affiche un message configurable.
+Cela permet de verifier que la structure Python, l'entree applicative et les tests sont correctement relies.
 
 ## Demarrage rapide
 
@@ -33,10 +33,28 @@ Installer le projet en mode editable :
 pip install -e .
 ```
 
+Installer les dependances de test :
+
+```bash
+pip install -e .[test]
+```
+
 Lancer le module principal :
 
 ```bash
-python -m mangbralouma.main
+python -m mangbralouma
+```
+
+Executer la commande CLI installee :
+
+```bash
+mangbralouma --name demo
+```
+
+Exemple avec majuscules :
+
+```bash
+mangbralouma --name demo --upper
 ```
 
 ## Structure du projet
@@ -48,14 +66,16 @@ mangbralouma/
 |-- src/
 |   `-- mangbralouma/
 |       |-- __init__.py
+|       |-- __main__.py
 |       `-- main.py
 `-- tests/
+	|-- conftest.py
 	`-- test_main.py
 ```
 
 ## Tests
 
-Un test minimal est fourni pour verifier le point d'entree principal.
+Des tests minimaux sont fournis pour verifier le message genere et le comportement de la CLI.
 
 ```bash
 pytest
