@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gestion familiale</title>
+  <style>
+    body {
+      font-family: Segoe UI, Tahoma, sans-serif;
+      margin: 0;
+      background: #f4f6fb;
+      color: #1f2937;
+    }
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    .header {
+      background: #0f172a;
+      color: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 18px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    }
+    h1, h2 {
+      margin-top: 0;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    input {
+      width: 100%;
+      padding: 9px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      margin-top: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border: 0;
+      border-radius: 8px;
+      background: #0ea5e9;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    th, td {
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+      padding: 8px 6px;
+    }
+    .ok {
+      background: #dcfce7;
+      color: #14532d;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 12px 0;
+    }
+    .err {
+      background: #fee2e2;
+      color: #7f1d1d;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 12px 0;
+    }
+    .summary p {
+      margin: 7px 0;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <h1>Association familiale</h1>
+      <p>Gestion des membres, cotisations et evenements.</p>
+    </div>
+
+    {% if message %}
+      <div class="ok">{{ message }}</div>
+    {% endif %}
+    {% if error %}
+      <div class="err">{{ error }}</div>
+    {% endif %}
+
+    <div class="grid">
+      <div class="card summary">
+        <h2>Resume</h2>
+        <p>Membres: {{ data.members|length }}</p>
+        <p>Cotisations: {{ data.cotisations|length }}</p>
+        <p>Total: {{ '%.2f'|format(total_cotisations) }}</p>
+        <p>Evenements: {{ data.events|length }}</p>
+      </div>
+
+      <div class="card">
+        <h2>Ajouter un membre</h2>
+        <form method="post" action="/members/add">
+          <label>Nom
+            <input name="name" required>
+          </label>
+          <label>Telephone
+            <input name="phone">
+          </label>
+          <label>Email
+            <input type="email" name="email">
+          </label>
+          <button type="submit">Enregistrer</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Ajouter une cotisation</h2>
+        <form method="post" action="/cotisations/add">
+          <label>ID membre
+            <input type="number" name="member_id" required>
+          </label>
+          <label>Montant
+            <input type="number" step="0.01" name="amount" required>
+          </label>
+          <label>Date
+            <input type="date" name="date" value="{{ today }}">
+          </label>
+          <label>Note
+            <input name="note">
+          </label>
+          <button type="submit">Ajouter</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Ajouter un evenement</h2>
+        <form method="post" action="/events/add">
+          <label>Titre
+            <input name="title" required>
+          </label>
+          <label>Date
+            <input type="date" name="date" value="{{ today }}" required>
+          </label>
+          <label>Description
+            <input name="description">
+          </label>
+          <button type="submit">Ajouter</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 16px;">
+      <h2>Membres</h2>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Nom</th><th>Telephone</th><th>Email</th></tr>
+        </thead>
+        <tbody>
+          {% for m in data.members %}
+          <tr>
+            <td>{{ m.id }}</td>
+            <td>{{ m.name }}</td>
+            <td>{{ m.phone or '-' }}</td>
+            <td>{{ m.email or '-' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top: 16px;">
+      <h2>Cotisations</h2>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Membre</th><th>Montant</th><th>Date</th><th>Note</th></tr>
+        </thead>
+        <tbody>
+          {% for c in data.cotisations %}
+          <tr>
+            <td>{{ c.id }}</td>
+            <td>#{{ c.member_id }}</td>
+            <td>{{ '%.2f'|format(c.amount) }}</td>
+            <td>{{ c.date }}</td>
+            <td>{{ c.note or '-' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top: 16px;">
+      <h2>Evenements</h2>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Titre</th><th>Date</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          {% for e in data.events %}
+          <tr>
+            <td>{{ e.id }}</td>
+            <td>{{ e.title }}</td>
+            <td>{{ e.date }}</td>
+            <td>{{ e.description or '-' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

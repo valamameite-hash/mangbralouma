@@ -2,11 +2,13 @@
 
 association familiale
 
-Application CLI Python pour gerer les membres de la grande famille, les cotisations et les evenements.
+Application Python (CLI + Web) pour gerer les membres de la grande famille,
+les cotisations et les evenements.
 
 ## Description
 
-Ce depot contient une application en ligne de commande (CLI) avec stockage JSON local.
+Ce depot contient une application en ligne de commande (CLI) et une
+application web Flask avec stockage JSON local.
 L'objectif est d'avoir une base operationnelle pour l'association familiale:
 
 - enregistrer les membres
@@ -23,6 +25,8 @@ La CLI propose des commandes metier:
 - `cotisation add|list`: ajoute et affiche les cotisations
 - `event add|list`: ajoute et affiche les evenements
 - `summary`: affiche les indicateurs principaux
+
+L'application web propose des formulaires pour les memes operations.
 
 ## Demarrage rapide
 
@@ -87,6 +91,52 @@ Afficher le resume :
 mangbralouma summary
 ```
 
+## Application web
+
+Installer le projet:
+
+```bash
+pip install -e .
+```
+
+Demarrer le serveur web en local:
+
+```bash
+mangbralouma-web --host 127.0.0.1 --port 5000
+```
+
+Ouvrir dans le navigateur:
+
+```text
+http://127.0.0.1:5000
+```
+
+### Acces depuis un autre ordinateur (meme reseau)
+
+Demarrer le serveur avec ecoute reseau:
+
+```bash
+mangbralouma-web --host 0.0.0.0 --port 5000
+```
+
+Trouver l'IP locale du PC serveur (exemple `192.168.1.25`) avec:
+
+```powershell
+ipconfig
+```
+
+Depuis l'autre ordinateur, ouvrir:
+
+```text
+http://192.168.1.25:5000
+```
+
+Important:
+
+- Les deux ordinateurs doivent etre sur le meme reseau.
+- Autoriser le port `5000` dans le pare-feu Windows si necessaire.
+- Si l'IP change, reutiliser `ipconfig` pour verifier la nouvelle adresse.
+
 ## Structure du projet
 
 ```text
@@ -97,15 +147,19 @@ mangbralouma/
 |   `-- mangbralouma/
 |       |-- __init__.py
 |       |-- __main__.py
-|       `-- main.py
+|       |-- main.py
+|       |-- web.py
+|       `-- templates/
+|           `-- index.html
 `-- tests/
     |-- conftest.py
-    `-- test_main.py
+    |-- test_main.py
+    `-- test_web.py
 ```
 
 ## Tests
 
-Des tests unitaires couvrent la creation de base, l'ajout de membres, la validation des cotisations et le resume.
+Des tests unitaires couvrent la CLI et les routes web principales.
 
 ```bash
 pytest
