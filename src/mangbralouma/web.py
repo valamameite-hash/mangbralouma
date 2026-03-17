@@ -11,7 +11,15 @@ from .main import (
     cmd_cotisation_add,
     cmd_event_add,
     cmd_member_add,
+    cmd_member_update,
+    cmd_member_delete,
+    cmd_member_search,
+    cmd_member_deactivate,
+    cmd_cotisation_report,
+    cmd_event_add_attendee,
+    export_to_csv,
     load_data,
+    find_member,
 )
 
 
@@ -146,6 +154,146 @@ def create_app(data_path: Path | None = None) -> Flask:
             reason=reason,
             amount=amount,
             description=description,
+        )
+        key = "message" if code == 0 else "error"
+        return redirect(url_for("index", **{key: msg}))
+
+    @app.post("/members/update")
+    def update_member():
+        storage = Path(app.config["DATA_PATH"])
+        try:
+            member_id = int(request.form.get("id", ""))
+        except ValueError:
+            return redirect(
+                url_for(
+                    "index",
+                    error="ID du membre invalide.",
+                )
+            )
+        first_name = (request.form.get("first_name") or "").strip() or None
+        last_name = (request.form.get("last_name") or "").strip() or None
+        nickname = (request.form.get("nickname") or "").strip() or None
+        country = (request.form.get("country") or "").strip() or None
+        city = (request.form.get("city") or "").strip() or None
+        occupation = (
+            (request.form.get("occupation") or "").strip() or None
+        )
+        phone = (request.form.get("phone") or "").strip() or None
+        email = (request.form.get("email") or "").strip() or None
+        code, msg = cmd_member_update(
+            storage,
+            member_id=member_id,
+            first_name=first_name,
+            last_name=last_name,
+            nickname=nickname,
+            country=country,
+            city=city,
+            occupation=occupation,
+            phone=phone,
+            email=email,
+        )
+        key = "message" if code == 0 else "error"
+        return redirect(url_for("index", **{key: msg}))
+
+    @app.post("/members/delete")
+    def delete_member():
+        storage = Path(app.config["DATA_PATH"])
+        try:
+            member_id = int(request.form.get("id", ""))
+        except ValueError:
+            return redirect(
+                url_for(
+                    "index",
+                    error="ID du membre invalide.",
+                )
+            )
+        code, msg = cmd_member_delete(storage, member_id=member_id)
+        key = "message" if code == 0 else "error"
+        return redirect(url_for("index", **{key: msg}))
+
+    @app.post("/members/deactivate")
+    def deactivate_member():
+        storage = Path(app.config["DATA_PATH"])
+        try:
+            member_id = int(request.form.get("id", ""))
+        except ValueError:
+            return redirect(
+                url_for(
+                    "index",
+                    error="ID du membre invalide.",
+                )
+            )
+        code, msg = cmd_member_deactivate(
+            storage,
+            member_id=member_id,
+        )
+        key = "message" if code == 0 else "error"
+        return redirect(url_for("index", **{key: msg}))
+
+    @app.get("/members/search")
+    def search_members():
+        storage = Path(app.config["DATA_PATH"])
+        data = load_data(storage)
+        query = (request.args.get("q") or "").strip()
+        results = []
+        if query:
+            query_lower = query.lower()
+            for member in data.get("members", []):
+                if member.get("active", True) is False:
+                    continue
+                full_name = (
+                    f"{member.get('first_name', '')} "
+                    f"{member.get('last_name', '')}"
+                ).lower()
+                nickname = (member.get("nickname") or "").lower()
+                phone = (member.get("phone") or "").lower()
+                email = (member.get("email") or "").lower()
+                if (
+                    query_lower in full_name
+                    or query_lower in nickname
+                    or query_lower in phone
+                    or query_lower in email
+                ):
+                    results.append(member)
+        return render_template(
+            "index.html",
+            data=data,
+            search_results=results,
+            search_query=query,
+            total_cotisations=sum(
+                item["amount"] for item in data.get("cotisations", [])
+            ),
+            today=date.today().isoformat(),
+            event_reasons=EVENT_REASONS,
+        )
+
+    @app.get("/export/<entity_type>")
+    def export_data(entity_type: str):
+        storage = Path(app.config["DATA_PATH"])
+        code, msg = export_to_csv(storage, entity_type=entity_type)
+        if code == 0:
+            return redirect(
+                url_for("index", message=msg)
+            )
+        return redirect(url_for("index", error=msg))
+
+    @app.post("/events/add-attendee")
+    def add_attendee():
+        storage = Path(app.config["DATA_PATH"])
+        try:
+            event_id = int(request.form.get("event_id", ""))
+            member_id = int(request.form.get("member_id", ""))
+        except ValueError:
+            return redirect(
+                url_for(
+                    "index",
+                    error="IDs invalides.",
+                )
+            )
+        code, msg = cmd_event_add_attendee(
+            storage,
+            event_id=event_id,
+            member_id=member_id,
         )
         key = "message" if code == 0 else "error"
         return redirect(url_for("index", **{key: msg}))

@@ -200,3 +200,258 @@ def test_event_list_filter_by_reason(capsys, tmp_path: Path) -> None:
     output = capsys.readouterr().out.lower()
     assert "mariage" in output
     assert "funerailles" not in output
+
+
+def test_member_search(capsys, tmp_path: Path) -> None:
+    data_file = tmp_path / "family.json"
+    assert main(["--data", str(data_file), "init"]) == 0
+    assert main(
+        [
+            "--data",
+            str(data_file),
+            "member",
+            "add",
+            "--first-name",
+            "Fatima",
+            "--last-name",
+            "Diallo",
+            "--phone",
+            "555-1234",
+        ]
+    ) == 0
+    assert main(
+        [
+            "--data",
+            str(data_file),
+            "member",
+            "search",
+            "--query",
+            "Fatima",
+        ]
+    ) == 0
+    output = capsys.readouterr().out
+    assert "Fatima" in output
+    assert "555-1234" in output
+
+
+def test_member_update(capsys, tmp_path: Path) -> None:
+    data_file = tmp_path / "family.json"
+    assert main(["--data", str(data_file), "init"]) == 0
+    assert main(
+        [
+            "--data",
+            str(data_file),
+            "member",
+            "add",
+            "--first-name",
+            "Jean",
+            "--last-name",
+            "Cisse",
+        ]
+    ) == 0
+    assert main(
+        [
+            "--data",
+            str(data_file),
+            "member",
+            "update",
+            "--id",
+            "1",
+            "--phone",
+            "555-9999",
+            "--email",
+            "jean@example.com",
+        ]
+    ) == 0
+    output = capsys.readouterr().out
+    assert "mis a jour" in output
+
+
+def test_member_delete(capsys, tmp_path: Path) -> None:
+    data_file = tmp_path / "family.json"
+    assert main(["--data", str(data_file), "init"]) == 0
+    assert main(
+        [
+            "--data",
+            str(data_file),
+            "member",
+            "add",
+            "--first-name",
+            "Alpha",
+            "--last-name",
+            "Ba",
+        ]
+    ) == 0
+    assert main(
+        [
+            "--data",
+            str(data_file),
+            "member",
+            "delete",
+            "--id",
+            "1",
+        ]
+    ) == 0
+    output = capsys.readouterr().out
+    assert "supprime" in output
+
+
+def test_member_deactivate_reactivate(capsys, tmp_path: Path) -> None:
+    data_file = tmp_path / "family.json"
+    assert main(["--data", str(data_file), "init"]) == 0
+    assert main(
+        [
+            "--data",
+            str(data_file),
+            "member",
+            "add",
+            "--first-name",
+            "Hassan",
+            "--last-name",
+            "Mohamed",
+        ]
+    ) == 0
+    assert main(
+        [
+            "--data",
+            str(data_file),
+            "member",
+            "deactivate",
+            "--id",
+            "1",
+        ]
+    ) == 0
+    output = capsys.readouterr().out
+    assert "archive" in output
+    assert main(
+        [
+            "--data",
+            str(data_file),
+            "member",
+            "reactivate",
+            "--id",
+            "1",
+        ]
+    ) == 0
+    output = capsys.readouterr().out
+    assert "reacte" in output
+
+
+def test_cotisation_report(capsys, tmp_path: Path) -> None:
+    data_file = tmp_path / "family.json"
+    assert main(["--data", str(data_file), "init"]) == 0
+    assert main(
+        [
+            "--data",
+            str(data_file),
+            "member",
+            "add",
+            "--first-name",
+            "Aissatou",
+            "--last-name",
+            "Sow",
+        ]
+    ) == 0
+    assert main(
+        [
+            "--data",
+            str(data_file),
+            "cotisation",
+            "add",
+            "--member-id",
+            "1",
+            "--amount",
+            "5000",
+            "--date",
+            "2026-03-01",
+        ]
+    ) == 0
+    assert main(
+        [
+            "--data",
+            str(data_file),
+            "cotisation",
+            "report",
+            "--member-id",
+            "1",
+        ]
+    ) == 0
+    output = capsys.readouterr().out
+    assert "5000.00" in output
+    assert "Aissatou" in output
+
+
+def test_event_add_attendee(capsys, tmp_path: Path) -> None:
+    data_file = tmp_path / "family.json"
+    assert main(["--data", str(data_file), "init"]) == 0
+    assert main(
+        [
+            "--data",
+            str(data_file),
+            "member",
+            "add",
+            "--first-name",
+            "Omar",
+            "--last-name",
+            "Toure",
+        ]
+    ) == 0
+    assert main(
+        [
+            "--data",
+            str(data_file),
+            "event",
+            "add",
+            "--title",
+            "Bapteme",
+            "--date",
+            "2026-06-15",
+            "--reason",
+            "baptemes",
+            "--amount",
+            "3500",
+        ]
+    ) == 0
+    assert main(
+        [
+            "--data",
+            str(data_file),
+            "event",
+            "add-attendee",
+            "--event-id",
+            "1",
+            "--member-id",
+            "1",
+        ]
+    ) == 0
+    output = capsys.readouterr().out
+    assert "ajoute a l'evenement" in output
+
+
+def test_export_csv(capsys, tmp_path: Path) -> None:
+    data_file = tmp_path / "family.json"
+    assert main(["--data", str(data_file), "init"]) == 0
+    assert main(
+        [
+            "--data",
+            str(data_file),
+            "member",
+            "add",
+            "--first-name",
+            "Moussa",
+            "--last-name",
+            "Diop",
+        ]
+    ) == 0
+    assert main(
+        [
+            "--data",
+            str(data_file),
+            "export",
+            "--type",
+            "members",
+        ]
+    ) == 0
+    output = capsys.readouterr().out
+    assert "Export reussi" in output
+    assert "members_export.csv" in output

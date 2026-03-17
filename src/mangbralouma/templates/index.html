@@ -194,6 +194,117 @@
     </div>
 
     <div class="card" style="margin-top: 16px;">
+      <h2>Rechercher un membre</h2>
+      <form method="get" action="/members/search">
+        <label>Rechercher par nom, email ou telephone
+          <input name="q" placeholder="Rechercher...">
+        </label>
+        <button type="submit">Rechercher</button>
+      </form>
+      {% if search_results is defined and search_results %}
+      <table style="margin-top: 10px;">
+        <thead>
+          <tr><th>ID</th><th>Prenom</th><th>Nom</th><th>Telephone</th></tr>
+        </thead>
+        <tbody>
+          {% for m in search_results %}
+          <tr>
+            <td>{{ m.id }}</td>
+            <td>{{ m.first_name or '-' }}</td>
+            <td>{{ m.last_name or '-' }}</td>
+            <td>{{ m.phone or '-' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+
+    <div class="card" style="margin-top: 16px;">
+      <h2>Mettre a jour un membre</h2>
+      <form method="post" action="/members/update">
+        <label>ID du membre
+          <input type="number" name="id" required>
+        </label>
+        <label>Nouveau prenom
+          <input name="first_name">
+        </label>
+        <label>Nouveau nom
+          <input name="last_name">
+        </label>
+        <label>Nouveau sobriquet
+          <input name="nickname">
+        </label>
+        <label>Nouveau pays
+          <input name="country">
+        </label>
+        <label>Nouvelle ville
+          <input name="city">
+        </label>
+        <label>Nouvelle activite
+          <input name="occupation">
+        </label>
+        <label>Nouveau telephone
+          <input name="phone">
+        </label>
+        <label>Nouvel email
+          <input type="email" name="email">
+        </label>
+        <button type="submit">Mettre a jour</button>
+      </form>
+    </div>
+
+    <div class="grid" style="margin-top: 16px;">
+      <div class="card">
+        <h2>Supprimer un membre</h2>
+        <form method="post" action="/members/delete">
+          <label>ID du membre
+            <input type="number" name="id" required>
+          </label>
+          <button type="submit" style="background: #ef4444;">Supprimer</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Desactiver un membre</h2>
+        <form method="post" action="/members/deactivate">
+          <label>ID du membre
+            <input type="number" name="id" required>
+          </label>
+          <button type="submit" style="background: #f59e0b;">Archiver</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Ajouter un participant</h2>
+        <form method="post" action="/events/add-attendee">
+          <label>ID de l'evenement
+            <input type="number" name="event_id" required>
+          </label>
+          <label>ID du membre
+            <input type="number" name="member_id" required>
+          </label>
+          <button type="submit">Ajouter</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 16px;">
+      <h2>Exporter les donnees</h2>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <a href="/export/members" style="padding: 8px 12px; background: #0ea5e9; color: white; border-radius: 8px; text-decoration: none; cursor: pointer;">
+          Exporter Membres (CSV)
+        </a>
+        <a href="/export/cotisations" style="padding: 8px 12px; background: #0ea5e9; color: white; border-radius: 8px; text-decoration: none; cursor: pointer;">
+          Exporter Cotisations (CSV)
+        </a>
+        <a href="/export/events" style="padding: 8px 12px; background: #0ea5e9; color: white; border-radius: 8px; text-decoration: none; cursor: pointer;">
+          Exporter Evenements (CSV)
+        </a>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 16px;">
       <h2>Membres</h2>
       <table>
         <thead>
