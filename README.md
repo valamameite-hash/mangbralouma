@@ -2,13 +2,12 @@
 
 association familiale
 
-Application Python (CLI + Web) pour gerer les membres de la grande famille,
+Application Python (CLI) pour gerer les membres de la grande famille,
 les cotisations et les evenements.
 
 ## Description
 
-Ce depot contient une application en ligne de commande (CLI) et une
-application web Flask avec stockage JSON local.
+Ce depot contient une application en ligne de commande (CLI) avec stockage JSON local.
 L'objectif est d'avoir une base operationnelle pour l'association familiale:
 
 - enregistrer les membres
@@ -21,12 +20,11 @@ L'objectif est d'avoir une base operationnelle pour l'association familiale:
 La CLI propose des commandes metier:
 
 - `init`: initialise la base locale
-- `member add|list`: ajoute et affiche les membres
-- `cotisation add|list`: ajoute et affiche les cotisations
-- `event add|list`: ajoute et affiche les evenements avec raison et montant
+- `member add|list|search|update|delete|deactivate|reactivate`: gerer les membres
+- `cotisation add|list|report`: gerer les cotisations et rapports
+- `event add|list|add-attendee`: gerer les evenements et participants
+- `export --type <members|cotisations|events>`: exporter les donnees en CSV
 - `summary`: affiche les indicateurs principaux
-
-L'application web propose des formulaires pour les memes operations.
 
 ## Demarrage rapide
 
@@ -99,51 +97,51 @@ Afficher le resume :
 mangbralouma summary
 ```
 
-## Application web
-
-Installer le projet:
+Rechercher un membre :
 
 ```bash
-pip install -e .
+mangbralouma member search --query "Aichou"
 ```
 
-Demarrer le serveur web en local:
+Mettre a jour un membre :
 
 ```bash
-mangbralouma-web --host 127.0.0.1 --port 5000
+mangbralouma member update --id 1 --phone "+22300000001"
 ```
 
-Ouvrir dans le navigateur:
-
-```text
-http://127.0.0.1:5000
-```
-
-### Acces depuis un autre ordinateur (meme reseau)
-
-Demarrer le serveur avec ecoute reseau:
+Desactiver un membre :
 
 ```bash
-mangbralouma-web --host 0.0.0.0 --port 5000
+mangbralouma member deactivate --id 1
 ```
 
-Trouver l'IP locale du PC serveur (exemple `192.168.1.25`) avec:
+Supprimer un membre :
 
-```powershell
-ipconfig
+```bash
+mangbralouma member delete --id 1
 ```
 
-Depuis l'autre ordinateur, ouvrir:
+Generer un rapport de cotisations :
 
-```text
-http://192.168.1.25:5000
+```bash
+mangbralouma cotisation report --member-id 1
 ```
 
-Important:
+Ajouter un participant a un evenement :
 
-- Les deux ordinateurs doivent etre sur le meme reseau.
-- Autoriser le port `5000` dans le pare-feu Windows si necessaire.
-- Si l'IP change, reutiliser `ipconfig` pour verifier la nouvelle adresse.
+```bash
+mangbralouma event add-attendee --event-id 1 --member-id 2
+```
+
+Exporter les donnees en CSV :
+
+```bash
+mangbralouma export --type members
+mangbralouma export --type cotisations
+mangbralouma export --type events
+```
+
+Les fichiers CSV sont generes dans le repertoire courant.
 
 ## Structure du projet
 
@@ -155,19 +153,15 @@ mangbralouma/
 |   `-- mangbralouma/
 |       |-- __init__.py
 |       |-- __main__.py
-|       |-- main.py
-|       |-- web.py
-|       `-- templates/
-|           `-- index.html
+|       `-- main.py
 `-- tests/
     |-- conftest.py
-    |-- test_main.py
-    `-- test_web.py
+    `-- test_main.py
 ```
 
 ## Tests
 
-Des tests unitaires couvrent la CLI et les routes web principales.
+Des tests unitaires couvrent la CLI et les principales operations.
 
 ```bash
 pytest
@@ -191,9 +185,10 @@ git status
 
 ## Roadmap
 
-- ajouter l'edition et la suppression des membres
-- exporter les rapports mensuels (CSV/PDF)
+- ajouter des rapports mensuels ou annuels
+- exporter en PDF
 - ajouter des roles (tresorier, secretaire, admin)
+- statistiques avancees par periode
 
 ## Auteur
 
